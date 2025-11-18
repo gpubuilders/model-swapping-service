@@ -49,3 +49,5 @@ groups:
       - qwen3_coder_reap_25b_A3B_IQ4_XS
       - qwen3_vl_30b_instruct
       - vibeThinker
+      - qwen3_vl_30b_thinking
+      - Qwen3-4B-Instruct-2507-vllm
