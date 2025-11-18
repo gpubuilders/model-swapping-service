@@ -1,0 +1,9 @@
+.aider*
+.env
+build/
+dist/
+.vscode
+.DS_Store
+.dev/
+node_modules/
+ui/node_modules/

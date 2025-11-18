@@ -1,0 +1,46 @@
+name: Build Containers
+
+on:
+  # time has no specific meaning, trying to time it after
+  # the llama.cpp daily packages are published
+  # https://github.com/ggml-org/llama.cpp/blob/master/.github/workflows/docker.yml
+  schedule:
+    - cron: "37 5 * * *"
+
+  # Allows manual triggering of the workflow
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [intel, cuda, vulkan, cpu, musa]
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run build-container
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./docker/build-container.sh ${{ matrix.platform }} true
+
+  # note make sure mostlygeek/model-swap has admin rights to the model-swap package
+  # see: https://github.com/actions/delete-package-versions/issues/74
+  delete-untagged-containers:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/delete-package-versions@v5
+        with:
+          package-name: 'model-swap'
+          package-type: 'container'
+          delete-only-untagged-versions: 'true'

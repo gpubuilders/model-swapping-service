@@ -1,0 +1,21 @@
+# Simple test configuration
+healthCheckTimeout: 30
+logLevel: info
+startPort: 5800
+
+models:
+  "simple-test":
+    cmd: "node -e \"require('http').createServer((_, res) => res.end('OK')).listen(${PORT})\""
+    proxy: "http://127.0.0.1:${PORT}"
+    checkEndpoint: "/"
+    name: "Simple Test Model"
+    description: "A simple test model"
+    metadata:
+      port: ${PORT}
+
+groups:
+  "default":
+    swap: true
+    exclusive: true
+    members:
+      - "simple-test"

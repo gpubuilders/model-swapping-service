@@ -1,0 +1,38 @@
+healthCheckTimeout: 500
+
+logLevel: info
+
+startPort: 10001
+
+sendLoadingState: true
+
+includeAliasesInList: false
+
+models:
+  qwen3_coder_reap_25b_A3B_IQ4_XS:
+    cmd: /app/llama-server --port ${PORT} -m /models/Qwen3-Coder-REAP-25B-A3B.IQ4_XS.gguf -ngl 99 --ctx-size 200000 --n-gpu-layers 49 -cmoe
+    proxy: http://127.0.0.1:${PORT}
+    checkEndpoint: /health
+    name: "Qwen3 Coder Reap 25B IQ4_XS"
+    description: "A large language model for coding tasks"
+
+  qwen3_vl_30b_instruct:
+    cmd: /app/llama-server --port ${PORT} -m /models/Qwen3-VL-30B-A3B-Instruct-UD-Q5_K_XL.gguf -ngl 99 --ctx-size 128000 --n-gpu-layers 33
+    proxy: http://127.0.0.1:${PORT}
+    checkEndpoint: /health
+    name: "Qwen3 VL 30B Instruct"
+    description: "A vision-language model for multimodal tasks"
+
+  vibeThinker:
+    cmd: /app/llama-server --port ${PORT} -m /models/VibeThinker-1.5B.Q8_0.gguf?download=true  -ngl 99 --ctx-size 128000 --n-gpu-layers 33
+
+# ADD THIS SECTION:
+groups:
+  main_group:
+    swap: true           # Enable swapping within this group
+    exclusive: false     # If true, stops ALL other groups when this runs
+    persistent: false    # If true, never auto-unload this group
+    members:
+      - qwen3_coder_reap_25b_A3B_IQ4_XS
+      - qwen3_vl_30b_instruct
+      - vibeThinker

@@ -1,0 +1,82 @@
+# model-swap configuration with llama-server and vllm examples
+healthCheckTimeout: 120
+logLevel: info
+startPort: 5800
+
+# Define macros for common paths and parameters
+macros:
+  model_path: "/models"
+  default_ctx: 4096
+  default_threads: 8
+
+models:
+  # Example llama-server model
+  "llama3-instruct":
+    name: "Llama 3 Instruct"
+    description: "Llama 3 Instruct model using llama-server"
+    cmd: |
+      ./llama-server
+      --model ${model_path}/Meta-Llama-3-8B-Instruct-Q4_K_M.gguf
+      --port ${PORT}
+      --ctx-size ${default_ctx}
+      --threads ${default_threads}
+      --n-gpu-layers -1
+    proxy: http://127.0.0.1:${PORT}
+    checkEndpoint: /health
+    aliases:
+      - "llama3"
+    metadata:
+      architecture: "llama"
+      size: "8B"
+      quantization: "Q4_K_M"
+      port: ${PORT}
+      model_path: ${model_path}/Meta-Llama-3-8B-Instruct-Q4_K_M.gguf
+
+  # Example vLLM model
+  "llama3-vllm":
+    name: "Llama 3 vLLM"
+    description: "Llama 3 model using vLLM"
+    cmd: |
+      vllm serve
+      --model ${model_path}/Meta-Llama-3-8B-Instruct
+      --port ${PORT}
+      --tensor-parallel-size 1
+    proxy: http://127.0.0.1:${PORT}
+    checkEndpoint: /health
+    aliases:
+      - "llama3-vllm-full"
+    metadata:
+      architecture: "llama"
+      size: "8B"
+      backend: "vllm"
+      port: ${PORT}
+
+  # Example with custom stop command
+  "llama3-docker":
+    name: "Llama 3 in Docker"
+    description: "Llama 3 running in a Docker container"
+    cmd: |
+      docker run --name ${MODEL_ID}
+      --init --rm -p ${PORT}:8080 -v ${model_path}:/models
+      ghcr.io/ggml-org/llama.cpp:server
+      --model '/models/Meta-Llama-3-8B-Instruct-Q4_K_M.gguf'
+      --port 8080
+    cmdStop: docker stop ${MODEL_ID}
+    proxy: http://127.0.0.1:${PORT}
+    checkEndpoint: /health
+    metadata:
+      backend: "docker"
+      port: ${PORT}
+
+groups:
+  "main":
+    swap: true
+    exclusive: true
+    members:
+      - "llama3-instruct"
+      - "llama3-vllm"
+      - "llama3-docker"
+
+hooks:
+  on_startup:
+    preload: []

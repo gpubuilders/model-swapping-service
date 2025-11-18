@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  model-swap-node:
+    build:
+      context: .
+      args:
+        BASE_TAG: server-cuda
+        LS_VER: 170
+        UID: 1001
+        GID: 1001
+    image: model-swap-node:latest
+    container_name: model-swap-node
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../config.yaml:/app/config.yaml
+      - ../../../models/:/models
+    # restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
