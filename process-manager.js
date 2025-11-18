@@ -34,8 +34,9 @@ class Process extends EventEmitter {
     this.inFlightRequests = 0;
     this.failedStartCount = 0;
     this.lastRequestHandled = new Date(0);
+    this.startTime = 0; // Track when process became ready
     this.healthCheckLoopInterval = 5000; // 5 seconds
-    
+
     // Create a reverse proxy target URL
     this.proxyUrl = new URL(this.config.proxy);
   }
@@ -47,10 +48,15 @@ class Process extends EventEmitter {
   async setState(newState) {
     const oldState = this.state;
     this.state = newState;
-    
+
+    // Set startTime when transitioning to READY state
+    if (newState === ProcessState.READY) {
+      this.startTime = Date.now();
+    }
+
     // Emit state change event
     this.emit('stateChange', { id: this.id, oldState, newState });
-    
+
     this.proxyLogger.info(`<${this.id}> State transitioned from ${oldState} to ${newState}`);
   }
 

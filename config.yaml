@@ -37,7 +37,7 @@ models:
     cmd: /app/llama-server --port ${PORT} -m /models/VibeThinker-1.5B.Q8_0.gguf?download=true  -ngl 99 --ctx-size 128000 --n-gpu-layers 33
 
   Qwen3-4B-Instruct-2507-vllm:
-    cmd: /usr/local/bin/vllm serve /models/Qwen3-4B-Instruct-2507 --max-model-len 8192 --port ${PORT}
+    cmd: /usr/local/bin/vllm serve /models/Qwen3-4B-Instruct-2507 --max-model-len 8192 --port ${PORT} --served-model-name Qwen3-4B-Instruct-2507-vllm
 
 # ADD THIS SECTION:
 groups:

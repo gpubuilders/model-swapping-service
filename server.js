@@ -766,6 +766,154 @@ app.get('/running', (req, res) => {
   res.json({ running: runningProcesses });
 });
 
+// llama.cpp props endpoint - proxy to currently active model
+app.get('/props', async (req, res) => {
+  // Find the currently active model (the most recently started)
+  let activeModel = null;
+  let latestStartTime = 0;
+
+  for (const [groupId, group] of processManager.processGroups) {
+    for (const [modelId, process] of group.processes) {
+      if (process.getCurrentState() === ProcessState.READY) {
+        if (process.startTime && process.startTime > latestStartTime) {
+          latestStartTime = process.startTime;
+          activeModel = modelId;
+        }
+      }
+    }
+  }
+
+  if (!activeModel) {
+    // If no model is active, return proper server props structure
+    return res.json({
+      default_generation_settings: {
+        id: 1,
+        id_task: 1,
+        n_ctx: 4096,
+        speculative: false,
+        is_processing: false,
+        params: {
+          n_predict: -1,
+          seed: -1,
+          temperature: 0.8,
+          dynatemp_range: 0.0,
+          dynatemp_exponent: 1.0,
+          top_k: 40,
+          top_p: 0.95,
+          min_p: 0.05,
+          top_n_sigma: 0.0,
+          xtc_probability: 0.0,
+          xtc_threshold: 0.1,
+          typ_p: 1.0,
+          repeat_last_n: 64,
+          repeat_penalty: 1.0,
+          presence_penalty: 0.0,
+          frequency_penalty: 0.0,
+          dry_multiplier: 0.0,
+          dry_base: 1.75,
+          dry_allowed_length: 2,
+          dry_penalty_last_n: -1,
+          dry_sequence_breakers: ["\n", "}", "]", '"'],
+          mirostat: 0,
+          mirostat_tau: 5.0,
+          mirostat_eta: 0.1,
+          stop: [],
+          max_tokens: -1,
+          n_keep: 0,
+          n_discard: 0,
+          ignore_eos: false,
+          stream: true,
+          logit_bias: [],
+          n_probs: 0,
+          min_keep: 0,
+          grammar: "",
+          grammar_lazy: true,
+          grammar_triggers: [],
+          preserved_tokens: [],
+          chat_format: "chatml",
+          reasoning_format: "auto",
+          reasoning_in_content: true,
+          thinking_forced_open: false,
+          samplers: ["top_k", "top_p", "min_p", "temperature"],
+          "speculative.n_max": 0,
+          "speculative.n_min": 0,
+          "speculative.p_min": 0.9,
+          timings_per_token: false,
+          post_sampling_probs: 0,
+          lora: []
+        },
+        prompt: "",
+        next_token: {
+          has_next_token: true,
+          has_new_line: false,
+          n_remain: -1,
+          n_decoded: 0,
+          stopping_word: ""
+        }
+      },
+      total_slots: 1,
+      model_path: "",
+      modalities: {
+        vision: false,
+        audio: false
+      },
+      chat_template: "chatml",
+      bos_token: "<|begin_of_text|>",
+      eos_token: "<|end_of_text|>",
+      build_info: "llama.cpp"
+    });
+  }
+
+  // Get the model config to determine where to proxy
+  const modelConfig = config.models[activeModel];
+  if (!modelConfig || !modelConfig.proxy) {
+    return res.status(500).json({ error: `No proxy configuration for model ${activeModel}` });
+  }
+
+  // Create a proxy to the actual model's props endpoint
+  const proxy = getOrCreateProxy(modelConfig.proxy, {
+    '^/props': '/props'
+  });
+
+  proxy(req, res);
+});
+
+// llama.cpp slots endpoint - proxy to currently active model
+app.get('/slots', async (req, res) => {
+  // Find the currently active model (the most recently started)
+  let activeModel = null;
+  let latestStartTime = 0;
+
+  for (const [groupId, group] of processManager.processGroups) {
+    for (const [modelId, process] of group.processes) {
+      if (process.getCurrentState() === ProcessState.READY) {
+        if (process.startTime && process.startTime > latestStartTime) {
+          latestStartTime = process.startTime;
+          activeModel = modelId;
+        }
+      }
+    }
+  }
+
+  if (!activeModel) {
+    // If no model is active, return empty slots array
+    return res.json([]);
+  }
+
+  // Get the model config to determine where to proxy
+  const modelConfig = config.models[activeModel];
+  if (!modelConfig || !modelConfig.proxy) {
+    return res.status(500).json({ error: `No proxy configuration for model ${activeModel}` });
+  }
+
+  // Create a proxy to the actual model's slots endpoint
+  const proxy = getOrCreateProxy(modelConfig.proxy, {
+    '^/slots': '/slots'
+  });
+
+  proxy(req, res);
+});
+
 // Unload all models
 app.get('/unload', async (req, res) => {
   try {

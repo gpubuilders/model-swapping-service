@@ -7,3 +7,4 @@ dist/
 .dev/
 node_modules/
 ui/node_modules/
+public/index.html.gz
