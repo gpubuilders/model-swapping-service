@@ -1,15 +1,21 @@
-# Llama Swap - Node.js Version
+# Model Swap, a fork of Llama-Swap but in vanilla Node.js
 
 A reverse proxy for local LLM models with dynamic switching capabilities, implemented in Node.js.
 
+
+
+# Model Swap
+
+A fork of [Llama-Swap](https://github.com/mostlygeek/llama-swap) but implemented in **vanilla Node.js**.
+
 ## Features
 
-- Reverse proxy for local LLM models (like llama.cpp's llama-server)
+- Reverse proxy for local LLM models (like `llama.cpp`'s `llama-server`)
 - Dynamic switching between models
 - Configuration via YAML with macro substitution
 - API endpoints compatible with OpenAI API format
 - Graceful startup and shutdown
-- Process management for llama-server instances
+- Process management for `llama-server` instances
 - Docker deployment support
 
 ## Requirements
@@ -39,7 +45,6 @@ npm start -- --config /path/to/config.yaml
 
 ### Run with Docker
 
-The Docker image is based on the `ghcr.io/mostlygeek/model-swap:cuda` base image, which includes llama-server and vLLM.
 
 ```bash
 # Build the image
@@ -90,6 +95,10 @@ Each model in the configuration can specify:
 
 The application manages model processes, starting them on-demand and stopping them when not in use (based on TTL or swapping rules).
 
-## License
+## Credit
 
-MIT
+The original **Llama-Swap** was created by **mostlygeek** and is written in Go. It acts as a lightweight reverse proxy for local LLMs like `llama.cpp`, enabling dynamic model switching based on OpenAI API requests. It supports features like per-model configuration, TTL-based unloading, Docker deployment, and profiles for running multiple models.
+
+GitHub Repository: [https://github.com/mostlygeek/llama-swap](https://github.com/mostlygeek/llama-swap)
+
+---

@@ -15,7 +15,7 @@
     "openai",
     "models"
   ],
-  "author": "Llama Swap Team",
+  "author": "model swap Team",
   "license": "PRIVATE",
   "dependencies": {
     "commander": "^11.1.0",
